@@ -38,10 +38,8 @@ type API struct {
 	authService     string
 	permissions     permissions.PermissionsService
 	singleUserToken string
-	MattermostAuth  bool
 	logger          mlog.LoggerIFace
 	audit           *audit.Audit
-	isPlugin        bool
 }
 
 func NewAPI(
@@ -51,7 +49,6 @@ func NewAPI(
 	permissions permissions.PermissionsService,
 	logger mlog.LoggerIFace,
 	audit *audit.Audit,
-	isPlugin bool,
 ) *API {
 	return &API{
 		app:             app,
@@ -60,7 +57,6 @@ func NewAPI(
 		permissions:     permissions,
 		logger:          logger,
 		audit:           audit,
-		isPlugin:        isPlugin,
 	}
 }
 
@@ -86,17 +82,14 @@ func (a *API) RegisterRoutes(r *mux.Router) {
 	a.registerSubscriptionsRoutes(apiv2)
 	a.registerFilesRoutes(apiv2)
 	a.registerLimitsRoutes(apiv2)
-	a.registerInsightsRoutes(apiv2)
 	a.registerOnboardingRoutes(apiv2)
 	a.registerSearchRoutes(apiv2)
 	a.registerConfigRoutes(apiv2)
 	a.registerBoardsAndBlocksRoutes(apiv2)
-	a.registerChannelsRoutes(apiv2)
 	a.registerTemplatesRoutes(apiv2)
 	a.registerBoardsRoutes(apiv2)
 	a.registerBlocksRoutes(apiv2)
 	a.registerContentBlocksRoutes(apiv2)
-	a.registerStatisticsRoutes(apiv2)
 	a.registerComplianceRoutes(apiv2)
 
 	// V3 routes

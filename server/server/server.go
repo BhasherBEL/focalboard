@@ -143,7 +143,7 @@ func New(params Params) (*Server, error) {
 	}
 	app := app.New(params.Cfg, wsAdapter, appServices)
 
-	focalboardAPI := api.NewAPI(app, params.SingleUserToken, params.Cfg.AuthMode, params.PermissionsService, params.Logger, auditService, params.IsPlugin)
+	focalboardAPI := api.NewAPI(app, params.SingleUserToken, params.Cfg.AuthMode, params.PermissionsService, params.Logger, auditService)
 
 	// Local router for admin APIs
 	localRouter := mux.NewRouter()
@@ -202,8 +202,6 @@ func New(params Params) (*Server, error) {
 		api:                 focalboardAPI,
 		app:                 app,
 	}
-
-	server.initHandlers()
 
 	return &server, nil
 }

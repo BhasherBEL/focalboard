@@ -19,13 +19,11 @@ import (
 
 func (a *API) registerAuthRoutes(r *mux.Router) {
 	// personal-server specific routes. These are not needed in plugin mode.
-	if !a.isPlugin {
-		r.HandleFunc("/login", a.handleLogin).Methods("POST")
-		r.HandleFunc("/logout", a.sessionRequired(a.handleLogout)).Methods("POST")
-		r.HandleFunc("/register", a.handleRegister).Methods("POST")
-		r.HandleFunc("/teams/{teamID}/regenerate_signup_token", a.sessionRequired(a.handlePostTeamRegenerateSignupToken)).Methods("POST")
-		r.HandleFunc("/users/{userID}/changepassword", a.sessionRequired(a.handleChangePassword)).Methods("POST")
-	}
+	r.HandleFunc("/login", a.handleLogin).Methods("POST")
+	r.HandleFunc("/logout", a.sessionRequired(a.handleLogout)).Methods("POST")
+	r.HandleFunc("/register", a.handleRegister).Methods("POST")
+	r.HandleFunc("/teams/{teamID}/regenerate_signup_token", a.sessionRequired(a.handlePostTeamRegenerateSignupToken)).Methods("POST")
+	r.HandleFunc("/users/{userID}/changepassword", a.sessionRequired(a.handleChangePassword)).Methods("POST")
 }
 
 func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
@@ -56,10 +54,6 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 	//     description: internal error
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
-	if a.MattermostAuth {
-		a.errorResponse(w, r, model.NewErrNotImplemented("not permitted in plugin mode"))
-		return
-	}
 
 	if len(a.singleUserToken) > 0 {
 		// Not permitted in single-user mode
@@ -122,10 +116,6 @@ func (a *API) handleLogout(w http.ResponseWriter, r *http.Request) {
 	//     description: internal error
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
-	if a.MattermostAuth {
-		a.errorResponse(w, r, model.NewErrNotImplemented("not permitted in plugin mode"))
-		return
-	}
 
 	if len(a.singleUserToken) > 0 {
 		// Not permitted in single-user mode
@@ -176,10 +166,6 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 	//     description: internal error
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
-	if a.MattermostAuth {
-		a.errorResponse(w, r, model.NewErrNotImplemented("not permitted in plugin mode"))
-		return
-	}
 
 	if len(a.singleUserToken) > 0 {
 		// Not permitted in single-user mode
@@ -279,10 +265,6 @@ func (a *API) handleChangePassword(w http.ResponseWriter, r *http.Request) {
 	//     description: internal error
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
-	if a.MattermostAuth {
-		a.errorResponse(w, r, model.NewErrNotImplemented("not permitted in plugin mode"))
-		return
-	}
 
 	if len(a.singleUserToken) > 0 {
 		// Not permitted in single-user mode
@@ -347,24 +329,6 @@ func (a *API) attachSession(handler func(w http.ResponseWriter, r *http.Request)
 				CreateAt:    now,
 				UpdateAt:    now,
 			}
-			ctx := context.WithValue(r.Context(), sessionContextKey, session)
-			handler(w, r.WithContext(ctx))
-			return
-		}
-
-		if a.MattermostAuth && r.Header.Get("Mattermost-User-Id") != "" {
-			userID := r.Header.Get("Mattermost-User-Id")
-			now := utils.GetMillis()
-			session := &model.Session{
-				ID:          userID,
-				Token:       userID,
-				UserID:      userID,
-				AuthService: a.authService,
-				Props:       map[string]interface{}{},
-				CreateAt:    now,
-				UpdateAt:    now,
-			}
-
 			ctx := context.WithValue(r.Context(), sessionContextKey, session)
 			handler(w, r.WithContext(ctx))
 			return
